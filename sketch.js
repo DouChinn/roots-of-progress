@@ -5,12 +5,22 @@ var widthlow
 //color palettes = [ [darkblue, lightblue, lightgreen, yellow] , [purple, pink, orange, yellow] ]
 let color_palettes = [ [[30,56,90],[54,152,206],[132,162,70], [217,203,105]] , [[83, 43, 85],[215, 75, 118], [251, 109, 72], [255, 175, 69]] ]
 var color_palette = color_palettes[getRandomInt(0,color_palettes.length-1)];
-// Preload function to load external assets
+
+// serial variables
+let serial;
+let latestData = "waiting for data"; 
+
+
+
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+
+// Preload function to load external assets
+
 function preload() {
   // Load the image
   // treeImg = loadImage('tree-black.png');
@@ -167,7 +177,13 @@ class Particle {
     // create a canvas with width 600 and height 400
     w = document.body.scrollWidthl
     createCanvas(1450, 920);
-  
+    serial = new p5.SerialPort();
+    serial.list(); 
+    serial.open("COM3"); 
+
+    serial.on('connected', serverConnected); 
+    serial.on('data', serialEvent);
+    
     // calculate the number of columns and rows in the canvas
     cols = floor(width / s);
     rows = floor(height / s);
@@ -183,7 +199,23 @@ class Particle {
     // set the background to black
     background(0);
   }
-  
+  function serverConnected() {
+  console.log('connected to server.');
+}
+
+
+//read gotten serial event content and invole animation trigger
+
+function serialEvent() {
+  let data = serial.readLine(); 
+  trim(data); 
+  if (!data) return; 
+  latestData = data; 
+  trigger(); 
+
+}
+
+
   // draw function is called repeatedly until the sketch stops
   function draw() {    
 
@@ -245,8 +277,9 @@ class Particle {
     image(circleImg, width/2 - 790, height/2 - 440, 1650, 1020);
   }
 
-// Function to handle mouse click event
-function mousePressed() {
+
+// alternative function to achieve previous 'mouse click event' function
+function trigger() {
     // Reset the background
     // background(0);
     // Reset color values
